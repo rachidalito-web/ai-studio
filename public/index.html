@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI Studio</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      background: #0b0b10;
+      color: white;
+      font-family: Arial, sans-serif;
+    }
+
+    header {
+      padding: 22px;
+      text-align: center;
+      border-bottom: 1px solid #292934;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 28px;
+    }
+
+    .sub {
+      color: #aaa;
+      margin-top: 7px;
+    }
+
+    main {
+      max-width: 700px;
+      margin: auto;
+      padding: 25px 18px;
+    }
+
+    .card {
+      background: #17171f;
+      padding: 22px;
+      border-radius: 18px;
+    }
+
+    textarea {
+      width: 100%;
+      min-height: 130px;
+      padding: 15px;
+      background: #0d0d13;
+      color: white;
+      border: 1px solid #343442;
+      border-radius: 12px;
+      font-size: 16px;
+      resize: vertical;
+    }
+
+    button {
+      width: 100%;
+      margin-top: 15px;
+      padding: 16px;
+      border: 0;
+      border-radius: 12px;
+      font-size: 17px;
+      font-weight: bold;
+      color: white;
+      background: linear-gradient(90deg,#6d3cff,#a63cff);
+      cursor: pointer;
+    }
+
+    #status {
+      text-align: center;
+      color: #bbb;
+      margin-top: 18px;
+    }
+
+    #result {
+      width: 100%;
+      margin-top: 20px;
+      border-radius: 15px;
+      display: none;
+    }
+  </style>
+</head>
+
+<body>
+
+<header>
+  <h1>✨ AI Studio</h1>
+  <div class="sub">Create images with AI</div>
+</header>
+
+<main>
+  <div class="card">
+
+    <h2>Text to Image</h2>
+
+    <textarea
+      id="prompt"
+      placeholder="Describe the image you want to create..."></textarea>
+
+    <button onclick="generateImage()">
+      Generate Image
+    </button>
+
+    <div id="status"></div>
+
+    <img id="result">
+
+  </div>
+</main>
+
+<script>
+async function generateImage() {
+
+  const prompt = document.getElementById("prompt").value;
+  const status = document.getElementById("status");
+  const result = document.getElementById("result");
+
+  if (!prompt.trim()) {
+    status.innerText = "Enter a prompt first.";
+    return;
+  }
+
+  status.innerText = "Generating image...";
+  result.style.display = "none";
+
+  try {
+
+    const response = await fetch("/generate", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ prompt })
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.error || "Generation failed");
+    }
+
+    const imageUrl =
+      data.image ||
+      data.imageUrl ||
+      data.images?.[0]?.url;
+
+    if (!imageUrl) {
+      throw new Error("No image returned");
+    }
+
+    result.src = imageUrl;
+    result.style.display = "block";
+    status.innerText = "Done!";
+
+  } catch (error) {
+
+    status.innerText = "Error: " + error.message;
+
+  }
+}
+</script>
+
+</body>
+</html>
